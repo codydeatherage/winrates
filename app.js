@@ -1,11 +1,14 @@
-/* import {createRequire} from 'module';
-const require = createRequire(import.meta.url); */
 const auth = require('./auth.json');
 const axios = require('axios');
-/* let allChamps = [];
+const MongoClient = require('mongodb').MongoClient;
 
-const apiKey = "RGAPI-cbb4716d-90f4-4cb9-b571-98d8b6309c61";
+const url = 'mongodb://localhost/winrates';
 
+MongoClient.connect(url, {useUnifiedTopology: true },(err, db)=>{
+    console.log('Connected');
+    db.close();
+});
+/*
 axios.post('https://na1.api.riotgames.com/lol/platform/v3/champion-rotations', 
             { headers: {
                 "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/84.0.4147.135 Safari/537.36",
@@ -25,17 +28,6 @@ axios.post('https://na1.api.riotgames.com/lol/platform/v3/champion-rotations',
         console.error(e);
     })
 
-  
-
-
-
-
-for(let i = 0; i < allChamps.length; i++){
-    console.log(allChamps);
-}
-
-
-
  */
 
 async function getAllChampNames(){
@@ -49,7 +41,7 @@ async function getAllChampNames(){
       const response = await prom;
       const {data} = response.data;
       for(let champ in data){
-          console.log(champ);
+ /*          console.log(champ); */
           allChamps.push(champ);
       }
      
@@ -58,4 +50,4 @@ async function getAllChampNames(){
 }
 
     const allChamps = getAllChampNames();
-    console.log(allChamps);
+ /*    console.log(allChamps); */
