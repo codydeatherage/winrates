@@ -2,11 +2,18 @@ const auth = require('./auth.json');
 const axios = require('axios');
 const MongoClient = require('mongodb').MongoClient;
 
-const url = 'mongodb://localhost/winrates';
+const url = 'mongodb://localhost/LoLWinrates';
 
-MongoClient.connect(url, {useUnifiedTopology: true },(err, db)=>{
+MongoClient.connect(url, {useUnifiedTopology: true }, async(err, client)=>{
     console.log('Connected');
-    db.close();
+    const db = client.db('LoLWinrates');
+    console.log(db);
+    await db.collection('matches').insertOne({
+        champion: 5,
+    }) 
+    client.close();
+  /*   db.collection; */
+/*     db.close(); */
 });
 /*
 axios.post('https://na1.api.riotgames.com/lol/platform/v3/champion-rotations', 
