@@ -12,8 +12,6 @@ const header = {
     "Origin": "https://developer.riotgames.com",
 };
 
-
-
 //https://americas.api.riotgames.com/lol/match/v5/matches/by-puuid/Zkw3ioDdn1ooWvk779ib5AJJy-PELX0I7GWW68TTfRdOOh6hqRW_n20rB5sUz8_pYaULFGlcWL16xw/ids?start=0&count=20
 const getMatchLists = async (pid) => {
     axios.get(`https://americas.api.riotgames.com/lol/match/v5/matches/by-puuid/${pid}/ids?start=0&count=20&api_key=${auth.key}`,
@@ -118,37 +116,3 @@ const updateMatches = () => {
         client.close();
     });
 }
-
-/*
-MongoClient.connect(url, { useUnifiedTopology: true }, async (err, client) => {
-    console.log('Connected to mongodb...');
-    const db = client.db('LoLWinrates');
-    console.log('creating new');
-
-    await db.collection('matches').insertOne({
-        matchId: 'asdfa'
-    })
-
-})
- */
-
-/* async function getAllChampNames() {
-    const allChamps = [];
-    try {
-        const prom = axios.get('http://ddragon.leagueoflegends.com/cdn/10.16.1/data/en_US/champion.json',
-            {
-                params: {
-                    ID: `${auth.key}`
-                }
-            });
-        const response = await prom;
-        const { data } = response.data;
-        for (let champ in data) {
-            allChamps.push(champ);
-        }
-
-        return allChamps;
-    } catch (err) { console.error(err) }
-}
-
-const allChamps = getAllChampNames(); */
