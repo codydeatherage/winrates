@@ -87,25 +87,32 @@ const updateMatches = () => {
     MongoClient.connect(url, { useUnifiedTopology: true }, async (err, client) => {
         console.log('Connected to mongodb...');
         const db = client.db('LoLWinrates');
-        let indices = [];
- /*        for (let match of matchesToQuery) {
-            await db.collection('matches').insertOne({
-                matchId: match
-            }) 
-        } */
+        let checkName = await db.collection('matches').find({"name": "sentientAI"}).count();
+        if(!checkName){
+            console.log('No document found for summoner name');
+        }
+        else{
+            console.log('SentientAI document found');
+        }
+
+/*         await db.collection('matches').updateOne(
+            {name: "sentientAI"},
+            { $addToSet: {"testArr": "five"} }
+        ) */
+
+        checkSet ? console.log('No "matches" field') : console.log('"matches" field found!');
 
         for (let match of matchesToQuery) {
-            const found = await db.collection('matches').find({"matchId": match}).count();
-           /*  console.log(found); */
+       const found = await db.collection('matches').find({"name": "sentientAI"}).count();
             if (!found) {
-                console.log('inserted:', match);
-                await db.collection('matches').insertOne({
-                    matchId: match
-                }); 
+                //console.log('inserted:', match);
+                await db.collection('matches').updateOne(
+                    {name: "sentientAI"},
+                    {$addToSet: {"matches": `${match}`}}
+                ); 
             }else{
-                console.log('tossed');
+                //console.log('tossed');
             }
-
         }
 
         client.close();
