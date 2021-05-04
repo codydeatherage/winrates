@@ -1,6 +1,7 @@
 const auth = require('./auth.json');
 const axios = require('axios');
 const MongoClient = require('mongodb').MongoClient;
+const cron = require('node-cron');
 
 const url = 'mongodb://localhost/LoLWinrates';
 let matchesToQuery = [];
@@ -20,9 +21,9 @@ const getMatchLists = async (pid) => {
         }).then((response) => {
             for (let match of response.data) {
                 /*      let id = match.slice(4); */
-                if (!matchesCounted.includes(match)) {
+                if (!matchesToQuery.includes(match)) {
                     matchesToQuery.push(match);
-                    matchesCounted.push(match);
+               /*      matchesCounted.push(match); */
                 }
             }
         }).catch((e) => {
@@ -79,38 +80,33 @@ const generateMatchList = async () => {
     let resp = getPuuidByName('sentientAI');
 }
 
-generateMatchList();
+/* generateMatchList(); */
+let date = new Date();
+console.log(`JOB started ${date.getMonth()}/${date.getDate()}/${date.getFullYear()}--- ${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`);
+
+cron.schedule('0 * * * *', ()=>{
+    generateMatchList();
+    let date2 = new Date();
+    console.log(`Request sent at ${date2.getMonth()}/${date2.getDate()}/${date2.getFullYear()}--- ${date2.getHours()}:${date2.getMinutes()}:${date2.getSeconds()}`);
+})
 
 const updateMatches = () => {
     MongoClient.connect(url, { useUnifiedTopology: true }, async (err, client) => {
         console.log('Connected to mongodb...');
         const db = client.db('LoLWinrates');
-        let checkName = await db.collection('matches').find({"name": "sentientAI"}).count();
-        if(!checkName){
+        let checkName = await db.collection('matches').find({ "name": "sentientAI" }).count();
+        if (!checkName) {
             console.log('No document found for summoner name');
         }
-        else{
+        else {
             console.log('SentientAI document found');
         }
 
-/*         await db.collection('matches').updateOne(
-            {name: "sentientAI"},
-            { $addToSet: {"testArr": "five"} }
-        ) */
-
-        checkSet ? console.log('No "matches" field') : console.log('"matches" field found!');
-
         for (let match of matchesToQuery) {
-       const found = await db.collection('matches').find({"name": "sentientAI"}).count();
-            if (!found) {
-                //console.log('inserted:', match);
-                await db.collection('matches').updateOne(
-                    {name: "sentientAI"},
-                    {$addToSet: {"matches": `${match}`}}
-                ); 
-            }else{
-                //console.log('tossed');
-            }
+            await db.collection('matches').updateOne(
+                { name: "sentientAI" },
+                { $addToSet: { "matches": `${match}` } }
+            );
         }
 
         client.close();
