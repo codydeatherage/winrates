@@ -5,7 +5,6 @@ const cron = require('node-cron');
 
 const url = 'mongodb://localhost/LoLWinrates';
 let matchesToQuery = [];
-let matchesCounted = [];
 const header = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.85 Safari/537.36",
     "Accept-Language": "en-US,en;q=0.9",
@@ -20,10 +19,8 @@ const getMatchLists = async (pid) => {
             headers: { header }
         }).then((response) => {
             for (let match of response.data) {
-                /*      let id = match.slice(4); */
                 if (!matchesToQuery.includes(match)) {
                     matchesToQuery.push(match);
-               /*      matchesCounted.push(match); */
                 }
             }
         }).catch((e) => {
@@ -63,7 +60,7 @@ const getPuuidByName = (name) => {
 }
 
 const getMatchData = async (matchId) => {
-    axios.get(`https://na1.api.riotgames.com/lol/match/v4/${matchId}?api_key=${auth.key}`,
+    axios.get(`https://na1.api.riotgames.com/lol/match/v5/${matchId}?api_key=${auth.key}`,
         {
             headers: { header }
         }).then(async (response) => {
@@ -76,16 +73,17 @@ const getMatchData = async (matchId) => {
         .then(() => console.log())
 }
 
-const generateMatchList = async () => {
+/* const generateMatchList = async () => {
     let resp = getPuuidByName('sentientAI');
-}
+} */
 
 /* generateMatchList(); */
 let date = new Date();
 console.log(`JOB started ${date.getMonth()}/${date.getDate()}/${date.getFullYear()}--- ${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`);
 
 cron.schedule('0 * * * *', ()=>{
-    generateMatchList();
+    getPuuidByName('sentientAI')
+   /*  generateMatchList(); */
     let date2 = new Date();
     console.log(`Request sent at ${date2.getMonth()}/${date2.getDate()}/${date2.getFullYear()}--- ${date2.getHours()}:${date2.getMinutes()}:${date2.getSeconds()}`);
 })
