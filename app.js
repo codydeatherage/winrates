@@ -1,6 +1,7 @@
 const auth = require('./auth.json');
 const axios = require('axios');
 const MongoClient = require('mongodb').MongoClient;
+const cursor = require('mongodb').Cursor;
 const cron = require('node-cron');
 
 const url = 'mongodb://localhost/LoLWinrates';
@@ -81,12 +82,12 @@ const getMatchData = async (matchId) => {
 let date = new Date();
 console.log(`JOB started ${date.getMonth()}/${date.getDate()}/${date.getFullYear()}--- ${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`);
 
-cron.schedule('0 * * * *', ()=>{
+/* cron.schedule('0 * * * *', ()=>{
     getPuuidByName('sentientAI')
-   /*  generateMatchList(); */
+   // generateMatchList(); 
     let date2 = new Date();
     console.log(`Request sent at ${date2.getMonth()}/${date2.getDate()}/${date2.getFullYear()}--- ${date2.getHours()}:${date2.getMinutes()}:${date2.getSeconds()}`);
-})
+}) */
 
 const updateMatches = () => {
     MongoClient.connect(url, { useUnifiedTopology: true }, async (err, client) => {
@@ -110,3 +111,41 @@ const updateMatches = () => {
         client.close();
     });
 }
+
+const readMatchData = () => {
+    MongoClient.connect(url, { useUnifiedTopology: true }, async (err, client) => {
+        console.log('Connected to mongodb...');
+        const db = client.db('LoLWinrates');
+       /*  let list = await db.collection('matches').find() *//* .toArray((e, doc) =>{
+            console.log(doc);
+        }) */;
+      //  console.log(list);
+        console.log('list');
+
+/*         const aggregateResult = await db.collection('matches').aggregate([
+            {
+              $match: {
+                "name": "sentientAI",
+              },
+            }
+          ]); */
+        let arr =await  db.collection('matches').find({"name": "sentientAI"}).toArray();
+        console.log(arr[0].matches);
+    /*       await console.dir(aggregateResult.s); */
+
+  
+        /* .project({"matches": {$exists: true} }).toArray((e, docs) =>{
+            console.log('found');
+            console.log(docs);
+        }); */
+/*         if (!checkName) {
+            console.log('No document found for summoner name');
+        }
+        else {
+            console.log('SentientAI document found');
+        }
+ */
+        client.close();
+    });
+}
+readMatchData();
