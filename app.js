@@ -6,13 +6,13 @@ const cron = require('node-cron');
 
 const url = 'mongodb://localhost/LoLWinrates';
 let matchesToQuery = [];
+let winrateLast20 = 0;
 const header = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.85 Safari/537.36",
     "Accept-Language": "en-US,en;q=0.9",
     "Accept-Charset": "application/x-www-form-urlencoded; charset=UTF-8",
     "Origin": "https://developer.riotgames.com",
 };
-
 //https://americas.api.riotgames.com/lol/match/v5/matches/by-puuid/Zkw3ioDdn1ooWvk779ib5AJJy-PELX0I7GWW68TTfRdOOh6hqRW_n20rB5sUz8_pYaULFGlcWL16xw/ids?start=0&count=20
 const getMatchLists = async (pid) => {
     axios.get(`https://americas.api.riotgames.com/lol/match/v5/matches/by-puuid/${pid}/ids?start=0&count=20&api_key=${auth.key}`,
@@ -61,13 +61,14 @@ const getPuuidByName = (name) => {
 }
 
 const getMatchData = async (matchId) => {
-    axios.get(`https://na1.api.riotgames.com/lol/match/v5/${matchId}?api_key=${auth.key}`,
+    axios.get(`https://americas.api.riotgames.com/lol/match/v5/matches/${matchId}?api_key=${auth.key}`,
         {
             headers: { header }
         }).then(async (response) => {
             console.log('promise done');
-            const { queueId, gameType, teams, participants } = response.data;
+            const {participants } = await response.data.metadata;
             console.log('participants: ', participants);
+            return participants;
         }).catch((e) => {
             console.error(e);
         })
@@ -112,7 +113,8 @@ const updateMatches = () => {
     });
 }
 
-const readMatchData = () => {
+const testMatches = [];
+const getMatchIdsFromDb = async () => {
     MongoClient.connect(url, { useUnifiedTopology: true }, async (err, client) => {
         console.log('Connected to mongodb...');
         const db = client.db('LoLWinrates');
@@ -122,30 +124,48 @@ const readMatchData = () => {
       //  console.log(list);
         console.log('list');
 
-/*         const aggregateResult = await db.collection('matches').aggregate([
-            {
-              $match: {
-                "name": "sentientAI",
-              },
-            }
-          ]); */
         let arr =await  db.collection('matches').find({"name": "sentientAI"}).toArray();
+       /*  console.log(arr[0].matches); */
+ /*        client.close(); */
         console.log(arr[0].matches);
-    /*       await console.dir(aggregateResult.s); */
-
-  
-        /* .project({"matches": {$exists: true} }).toArray((e, docs) =>{
-            console.log('found');
-            console.log(docs);
-        }); */
-/*         if (!checkName) {
-            console.log('No document found for summoner name');
+        for(let match of arr[0].matches){
+            testMatches.push(match);
         }
-        else {
-            console.log('SentientAI document found');
-        }
- */
+        console.log('first match: ', await getMatchData(arr[0].matches[0]));
+        console.log('testMatches', testMatches);
         client.close();
-    });
+        return arr[0].matches;
+        
+    /*       await console.dir(aggregateResult.s); */
+    })
+    
+    
+    /* .then(async ()=>{
+       // for(let match of matchList){
+            const data = getMatchData(match);
+            console.log('data', await data);
+        //}
+    }) */
+    ;
 }
-readMatchData();
+
+const getAllMatchData = async ()=>{
+    const matchList = await getMatchIdsFromDb().then(async ()=>{
+        // for(let match of matchList){
+            let match = testMatches[0];
+             const data = getMatchData(match);
+             console.log('data', await data);
+         //}
+     })
+    console.log('Calculating winrate...');
+    /* console.log(await matchList); */
+  /*   for(let match of matchList){
+        const data = getMatchData(match);
+        console.log('data', await data);
+
+    } */
+    /* console.log(await matchList[0]); */
+}
+/* getAllMatchData(); */
+/* getPuuidByName('sentientAI') */
+getMatchIdsFromDb();
