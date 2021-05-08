@@ -83,12 +83,12 @@ const getMatchData = async (matchId) => {
 let date = new Date();
 console.log(`JOB started ${date.getMonth()}/${date.getDate()}/${date.getFullYear()}--- ${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`);
 
-/* cron.schedule('0 * * * *', ()=>{
+cron.schedule('0 * * * *', ()=>{
     getPuuidByName('sentientAI')
    // generateMatchList(); 
     let date2 = new Date();
     console.log(`Request sent at ${date2.getMonth()}/${date2.getDate()}/${date2.getFullYear()}--- ${date2.getHours()}:${date2.getMinutes()}:${date2.getSeconds()}`);
-}) */
+})
 
 const updateMatches = () => {
     MongoClient.connect(url, { useUnifiedTopology: true }, async (err, client) => {
@@ -168,4 +168,4 @@ const getAllMatchData = async ()=>{
 }
 /* getAllMatchData(); */
 /* getPuuidByName('sentientAI') */
-getMatchIdsFromDb();
+/* getMatchIdsFromDb(); */
