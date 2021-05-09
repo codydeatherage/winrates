@@ -3,6 +3,7 @@ const axios = require('axios');
 const MongoClient = require('mongodb').MongoClient;
 const cursor = require('mongodb').Cursor;
 const cron = require('node-cron');
+const champs = require('champion.json');
 
 const url = 'mongodb://localhost/LoLWinrates';
 let matchesToQuery = [];
@@ -66,7 +67,7 @@ const getMatchData = async (matchId) => {
             headers: { header }
         }).then(async (response) => {
             console.log('promise done');
-            const {participants } = await response.data.metadata;
+            const { participants } = await response.data.metadata;
             console.log('participants: ', participants);
             return participants;
         }).catch((e) => {
@@ -83,12 +84,12 @@ const getMatchData = async (matchId) => {
 let date = new Date();
 console.log(`JOB started ${date.getMonth()}/${date.getDate()}/${date.getFullYear()}--- ${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`);
 
-cron.schedule('0 * * * *', ()=>{
+/* cron.schedule('0 * * * *', ()=>{
     getPuuidByName('sentientAI')
    // generateMatchList(); 
     let date2 = new Date();
     console.log(`Request sent at ${date2.getMonth()}/${date2.getDate()}/${date2.getFullYear()}--- ${date2.getHours()}:${date2.getMinutes()}:${date2.getSeconds()}`);
-})
+}) */
 
 const updateMatches = () => {
     MongoClient.connect(url, { useUnifiedTopology: true }, async (err, client) => {
@@ -121,51 +122,77 @@ const getMatchIdsFromDb = async () => {
        /*  let list = await db.collection('matches').find() *//* .toArray((e, doc) =>{
             console.log(doc);
         }) */;
-      //  console.log(list);
+        //  console.log(list);
         console.log('list');
 
-        let arr =await  db.collection('matches').find({"name": "sentientAI"}).toArray();
-       /*  console.log(arr[0].matches); */
- /*        client.close(); */
+        let arr = await db.collection('matches').find({ "name": "sentientAI" }).toArray();
+        /*  console.log(arr[0].matches); */
+        /*        client.close(); */
         console.log(arr[0].matches);
-        for(let match of arr[0].matches){
+        for (let match of arr[0].matches) {
             testMatches.push(match);
         }
         console.log('first match: ', await getMatchData(arr[0].matches[0]));
         console.log('testMatches', testMatches);
         client.close();
         return arr[0].matches;
-        
-    /*       await console.dir(aggregateResult.s); */
+
+        /*       await console.dir(aggregateResult.s); */
     })
-    
-    
-    /* .then(async ()=>{
-       // for(let match of matchList){
-            const data = getMatchData(match);
-            console.log('data', await data);
-        //}
-    }) */
-    ;
+
+
+        /* .then(async ()=>{
+           // for(let match of matchList){
+                const data = getMatchData(match);
+                console.log('data', await data);
+            //}
+        }) */
+        ;
 }
 
-const getAllMatchData = async ()=>{
-    const matchList = await getMatchIdsFromDb().then(async ()=>{
+const getAllMatchData = async () => {
+    const matchList = await getMatchIdsFromDb().then(async () => {
         // for(let match of matchList){
-            let match = testMatches[0];
-             const data = getMatchData(match);
-             console.log('data', await data);
-         //}
-     })
-    console.log('Calculating winrate...');
-    /* console.log(await matchList); */
-  /*   for(let match of matchList){
+        let match = testMatches[0];
         const data = getMatchData(match);
         console.log('data', await data);
-
-    } */
+        //}
+    })
+    console.log('Calculating winrate...');
+    /* console.log(await matchList); */
+    /*   for(let match of matchList){
+          const data = getMatchData(match);
+          console.log('data', await data);
+  
+      } */
     /* console.log(await matchList[0]); */
 }
+
+const getChampData = async () => {
+    /*  let allChamps = []; */
+    const fetch = await axios.get('http://ddragon.leagueoflegends.com/cdn/11.9.1/data/en_US/champion.json')
+        .then(async (resp) => {
+                    let champ = await resp.data;
+        /*     allChamps.push(resp.data.data); */
+            let allChamps = [];
+            for (let ch in champ.data) {
+                allChamps.push(ch);
+            }
+            return allChamps;
+        })
+    return await fetch;
+}
+const test = async () => {
+/*     const names = await getChampData();
+    console.log('n', names); */
+    let allNames = [];
+    for(let ch in champs.champions){
+        
+    }
+    /* console.log(champs.champions); */
+}
+test();
+/* console.log(allChamps); */
 /* getAllMatchData(); */
 /* getPuuidByName('sentientAI') */
 /* getMatchIdsFromDb(); */
