@@ -4,6 +4,7 @@ const MongoClient = require('mongodb').MongoClient;
 const cursor = require('mongodb').Cursor;
 const cron = require('node-cron');
 const champs = require('champion.json');
+/* const { endianness } = require('node:os'); */
 
 const url = 'mongodb://localhost/LoLWinrates';
 let matchesToQuery = [];
@@ -31,11 +32,11 @@ const getMatchLists = async (pid) => {
         .then(() => {
             console.log('Generated Match List', matchesToQuery);
             return matchesToQuery;
-        })
+        })/* 
         .then(() => {
             console.log("Updating tracked match ID's...");
-            updateMatches();
-        })
+            updateMatches(); 
+        }) */
 }
 
 const getPuuidByName = (name) => {
@@ -44,14 +45,15 @@ const getPuuidByName = (name) => {
     axios.get(`https://na1.api.riotgames.com/lol/summoner/v4/summoners/by-name/${name}?api_key=${auth.key}`,
         {
             headers: { header }
+        }).catch((e) => {
+            console.error(`!! Code ${e.response.status} --> ${e.response.statusText} !!`);
         }).then(async (response) => {
             const { puuid, accountId } = response.data;
             pid = puuid;
-        }).catch((e) => {
-            console.error(e);
+            console.log(pid);
         })
         .then(() => {
-            const list = getMatchLists(pid);
+          /*   const list = getMatchLists(pid); */
 
         })
         .then(() => {
@@ -71,7 +73,7 @@ const getMatchData = async (matchId) => {
             console.log('participants: ', participants);
             return participants;
         }).catch((e) => {
-            console.error(e);
+            console.error(`!! Code ${e.response.status} --> ${e.response.statusText} !!`);
         })
         .then(() => console.log())
 }
@@ -191,8 +193,68 @@ const test = async () => {
     }
     /* console.log(champs.champions); */
 }
-test();
+
+const getChallengerData = async() =>{
+    axios.get(`https://na1.api.riotgames.com/lol/league/v4/challengerleagues/by-queue/RANKED_SOLO_5x5?api_key=${auth.key}`,
+    {
+        headers: { header }
+    }).then(async (response) => {
+        const {entries} = response.data;
+        let challengerSummoners = [];
+    
+        for(let ent of entries){
+            if(challengerSummoners.indexOf(ent.summonerName) <= 0){
+                challengerSummoners.push({name: ent.summonerName, id:ent.summonerId});
+            }
+        }
+        /* The rate limit for a personal keys is by design very limited:
+        ** 20 requests every 1 second
+        ** 100 requests every 2 minutes */
+
+        //20 per second, for 5 seconds, then wait 1:55, repeat
+        //2 calls per name + 1 call to reach this point
+        //1st: 9 names/s for 1s, 10 names/s for 4s, wait 1:55
+        //2nd-Last : 10 names/s for 5s, wait 1:55
+        let first = true;
+        let done = false;
+        let limit = 9;
+        let index = 0;
+    
+        let count = 0; 
+       /*  let recurringFetch = setInterval(()=>{ */
+            first ? limit = 9: limit = 10;
+            console.log(`iteration: ${count}`)
+        let recurringFetch =  setInterval(()=>{
+                console.log('herere');
+                for(let i = index; i <= (index + limit); i++){
+                    if(challengerSummoners[i]){
+                        getPuuidByName(challengerSummoners[i].name);
+                    }
+                    else{
+                        done = true;
+                        clearInterval(recurringFetch);
+                        break;
+                    } 
+                }
+                if(done === false){
+                    if(first){
+                        first = !first;
+                    }
+                    index = index + limit;
+                }
+            }, 1000)
+       /*  }, 115000) */
+
+/*         for(let summ of challengerSummoners){
+            getPuuidByName(summ.name);
+        } */
+    }).catch((e) => {
+        console.error(`!! Code ${e.response.status} --> ${e.response.statusText} !!`);;
+    })
+}
+/* test(); */
 /* console.log(allChamps); */
 /* getAllMatchData(); */
-/* getPuuidByName('sentientAI') */
+getPuuidByName('sentientAI')
 /* getMatchIdsFromDb(); */
+/* getChallengerData(); */
