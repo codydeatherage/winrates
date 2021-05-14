@@ -200,13 +200,10 @@ async function delay(t) {
     });
 }
 
-const rateFetch = async (names) => {//arr.first, arr.index, arr.limit
-    /* console.log(names); */
-    for (let i = 0; i < names.length; i++) {
-        if (names[i]) {
-            getPuuidByName(challengerSummoners[i].name); 
-            console.log(`name: ${names[i]}`)
-        }
+const rateFetch = async (list) => {//arr.first, arr.index, arr.limit
+  /*    console.log(list.names.length);  */
+    for (let i = 0; i < list.names.length; i++) {
+        getPuuidByName(list.names[i].name);
     }
 }
 
@@ -233,21 +230,21 @@ const getChallengerData = async () => {
             //2 calls per name + 1 call to reach this point
             //1st: 9 names/s for 1s, 10 names/s for 4s, wait 1:55
             //2nd-Last : 10 names/s for 5s, wait 1:55
-            let first = true;
+          /*   let first = true; */
             let done = false;
             let it = 0;
-            let limit = 0;
+            let limit = 9;
             let index = 0;
 
             let count = 0;
             let ratedFetches = setInterval(async () => {
                 let time = 1000;
-                if (first) {
+               /*  if (first) {
                     limit += 9;
                     first = !first;
                 } else {
                     limit += 10;
-                }
+                } */
                 if (index >= challengerSummoners.length) {
                     clearInterval(ratedFetches);
                 }
@@ -258,7 +255,8 @@ const getChallengerData = async () => {
                     }
                     if (challengerSummoners.slice(index, limit)) { console.log(`Fetching ${index}->${limit}`) }
                     await delay(time);
-                    rateFetch({names: challengerSummoners.slice(index, limit)});
+                    console.log('fetching...');
+                    rateFetch({ names: challengerSummoners.slice(index, limit) });
                     index += 10;
                     limit += 10;
                 }
