@@ -30,7 +30,7 @@ const getMatchLists = async (pid) => {
             console.error(e);
         })
         .then(() => {
-            console.log('Generated Match List', matchesToQuery);
+            console.log('Generated Match List'/* , matchesToQuery */);
             return matchesToQuery;
         })/* 
         .then(() => {
@@ -53,14 +53,14 @@ const getPuuidByName = (name) => {
             console.log(pid);
         })
         .then(() => {
-          /*   const list = getMatchLists(pid); */
+            const list = getMatchLists(pid);
 
-        })
+        })/* 
         .then(() => {
 
             console.log("---Player Id's Found---");
             console.log("Generating Match List...");
-        })
+        }) */
 }
 
 const getMatchData = async (matchId) => {
@@ -174,8 +174,8 @@ const getChampData = async () => {
     /*  let allChamps = []; */
     const fetch = await axios.get('http://ddragon.leagueoflegends.com/cdn/11.9.1/data/en_US/champion.json')
         .then(async (resp) => {
-                    let champ = await resp.data;
-        /*     allChamps.push(resp.data.data); */
+            let champ = await resp.data;
+            /*     allChamps.push(resp.data.data); */
             let allChamps = [];
             for (let ch in champ.data) {
                 allChamps.push(ch);
@@ -185,76 +185,91 @@ const getChampData = async () => {
     return await fetch;
 }
 const test = async () => {
-/*     const names = await getChampData();
-    console.log('n', names); */
+    /*     const names = await getChampData();
+        console.log('n', names); */
     let allNames = [];
-    for(let ch in champs.champions){
-        
+    for (let ch in champs.champions) {
+
     }
     /* console.log(champs.champions); */
 }
 
-const getChallengerData = async() =>{
-    axios.get(`https://na1.api.riotgames.com/lol/league/v4/challengerleagues/by-queue/RANKED_SOLO_5x5?api_key=${auth.key}`,
-    {
-        headers: { header }
-    }).then(async (response) => {
-        const {entries} = response.data;
-        let challengerSummoners = [];
-    
-        for(let ent of entries){
-            if(challengerSummoners.indexOf(ent.summonerName) <= 0){
-                challengerSummoners.push({name: ent.summonerName, id:ent.summonerId});
-            }
+async function delay(t) {
+    return new Promise((resolve) => {
+        setTimeout(() => resolve(), t);
+    });
+}
+
+const rateFetch = async (names) => {//arr.first, arr.index, arr.limit
+    /* console.log(names); */
+    for (let i = 0; i < names.length; i++) {
+        if (names[i]) {
+            getPuuidByName(challengerSummoners[i].name); 
+            console.log(`name: ${names[i]}`)
         }
-        /* The rate limit for a personal keys is by design very limited:
-        ** 20 requests every 1 second
-        ** 100 requests every 2 minutes */
+    }
+}
 
-        //20 per second, for 5 seconds, then wait 1:55, repeat
-        //2 calls per name + 1 call to reach this point
-        //1st: 9 names/s for 1s, 10 names/s for 4s, wait 1:55
-        //2nd-Last : 10 names/s for 5s, wait 1:55
-        let first = true;
-        let done = false;
-        let limit = 9;
-        let index = 0;
-    
-        let count = 0; 
-       /*  let recurringFetch = setInterval(()=>{ */
-            first ? limit = 9: limit = 10;
-            console.log(`iteration: ${count}`)
-        let recurringFetch =  setInterval(()=>{
-                console.log('herere');
-                for(let i = index; i <= (index + limit); i++){
-                    if(challengerSummoners[i]){
-                        getPuuidByName(challengerSummoners[i].name);
-                    }
-                    else{
-                        done = true;
-                        clearInterval(recurringFetch);
+
+
+const getChallengerData = async () => {
+    axios.get(`https://na1.api.riotgames.com/lol/league/v4/challengerleagues/by-queue/RANKED_SOLO_5x5?api_key=${auth.key}`,
+        {
+            headers: { header }
+        }).then(async (response) => {
+            const { entries } = response.data;
+            let challengerSummoners = [];
+
+            for (let ent of entries) {
+                if (challengerSummoners.indexOf(ent.summonerName) <= 0) {
+                    challengerSummoners.push({ name: ent.summonerName, id: ent.summonerId });
+                }
+            }
+            /* The rate limit for a personal keys is by design very limited:
+            ** 20 requests every 1 second
+            ** 100 requests every 2 minutes */
+
+            //20 per second, for 5 seconds, then wait 1:55, repeat
+            //2 calls per name + 1 call to reach this point
+            //1st: 9 names/s for 1s, 10 names/s for 4s, wait 1:55
+            //2nd-Last : 10 names/s for 5s, wait 1:55
+            let first = true;
+            let done = false;
+            let it = 0;
+            let limit = 0;
+            let index = 0;
+
+            let count = 0;
+            let ratedFetches = setInterval(async () => {
+                let time = 1000;
+                if (first) {
+                    limit += 9;
+                    first = !first;
+                } else {
+                    limit += 10;
+                }
+                if (index >= challengerSummoners.length) {
+                    clearInterval(ratedFetches);
+                }
+                for (let i = 0; i < 5; i++) {
+                    if (index >= challengerSummoners.length) {
+                        clearInterval(ratedFetches);
                         break;
-                    } 
-                }
-                if(done === false){
-                    if(first){
-                        first = !first;
                     }
-                    index = index + limit;
+                    if (challengerSummoners.slice(index, limit)) { console.log(`Fetching ${index}->${limit}`) }
+                    await delay(time);
+                    rateFetch({names: challengerSummoners.slice(index, limit)});
+                    index += 10;
+                    limit += 10;
                 }
-            }, 1000)
-       /*  }, 115000) */
-
-/*         for(let summ of challengerSummoners){
-            getPuuidByName(summ.name);
-        } */
-    }).catch((e) => {
-        console.error(`!! Code ${e.response.status} --> ${e.response.statusText} !!`);;
-    })
+            }, 115000)
+        }).catch((e) => {
+            console.error(`!! Code ${e.response.status} --> ${e.response.statusText} !!`);;
+        })
 }
 /* test(); */
 /* console.log(allChamps); */
 /* getAllMatchData(); */
-getPuuidByName('sentientAI')
+/* getPuuidByName('sentientAI') */
 /* getMatchIdsFromDb(); */
-/* getChallengerData(); */
+getChallengerData();
