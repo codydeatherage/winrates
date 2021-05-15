@@ -9,7 +9,7 @@ const champs = require('champion.json');
 const url = 'mongodb://localhost/LoLWinrates';
 let matchesToQuery = [];
 let winrateLast20 = 0;
-const header = {
+const header = { //Request header for Riot API
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.85 Safari/537.36",
     "Accept-Language": "en-US,en;q=0.9",
     "Accept-Charset": "application/x-www-form-urlencoded; charset=UTF-8",
@@ -30,37 +30,35 @@ const getMatchLists = async (pid) => {
             console.error(e);
         })
         .then(() => {
-            console.log('Generated Match List'/* , matchesToQuery */);
-            return matchesToQuery;
-        })/* 
-        .then(() => {
-            console.log("Updating tracked match ID's...");
-            updateMatches(); 
-        }) */
+            //console.log('Generated Match List'/* , matchesToQuery */);
+            /* console.log('MatchList set found!', matchesToQuery.length); */
+            matchesToQuery = [];
+            /*  return matchesToQuery; */
+        })
 }
 
 const getPuuidByName = (name) => {
-    console.log('Input Name: ', name);
+    //console.log('Input Name: ', name);
+    const encodedName = encodeURI(name);
     let pid = '';
-    axios.get(`https://na1.api.riotgames.com/lol/summoner/v4/summoners/by-name/${name}?api_key=${auth.key}`,
+    axios.get(`https://na1.api.riotgames.com/lol/summoner/v4/summoners/by-name/${encodedName}?api_key=${auth.key}`,
         {
             headers: { header }
         }).catch((e) => {
-            console.error(`!! Code ${e.response.status} --> ${e.response.statusText} !!`);
+            console.error(`!! Code ${e.response.status} --> ${e.response.statusText} !! ${name}`);
         }).then(async (response) => {
-            const { puuid, accountId } = response.data;
-            pid = puuid;
-            console.log(pid);
+            if (!response) {
+                console.log('MatchId Error:', name);
+                pid = '';
+            } else {
+                const { puuid } = response.data;
+                pid = puuid;
+                /*  console.log('++', pid); */
+            }
         })
         .then(() => {
-            const list = getMatchLists(pid);
-
-        })/* 
-        .then(() => {
-
-            console.log("---Player Id's Found---");
-            console.log("Generating Match List...");
-        }) */
+            if (pid) getMatchLists(pid);
+        })
 }
 
 const getMatchData = async (matchId) => {
@@ -78,11 +76,6 @@ const getMatchData = async (matchId) => {
         .then(() => console.log())
 }
 
-/* const generateMatchList = async () => {
-    let resp = getPuuidByName('sentientAI');
-} */
-
-/* generateMatchList(); */
 let date = new Date();
 console.log(`JOB started ${date.getMonth()}/${date.getDate()}/${date.getFullYear()}--- ${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`);
 
@@ -200,14 +193,12 @@ async function delay(t) {
     });
 }
 
-const rateFetch = async (list) => {//arr.first, arr.index, arr.limit
-  /*    console.log(list.names.length);  */
+const rateFetch = async (list) => {
     for (let i = 0; i < list.names.length; i++) {
         getPuuidByName(list.names[i].name);
     }
+    console.log('Set Found');
 }
-
-
 
 const getChallengerData = async () => {
     axios.get(`https://na1.api.riotgames.com/lol/league/v4/challengerleagues/by-queue/RANKED_SOLO_5x5?api_key=${auth.key}`,
@@ -222,29 +213,21 @@ const getChallengerData = async () => {
                     challengerSummoners.push({ name: ent.summonerName, id: ent.summonerId });
                 }
             }
+            
             /* The rate limit for a personal keys is by design very limited:
             ** 20 requests every 1 second
-            ** 100 requests every 2 minutes */
+            ** 100 requests every 2 minutes 
+            **
+            ** 20 per second, for 5 seconds, then wait 1:55, repeat
+            ** 2 calls per name + 1 call to reach this point
+            ** 1st: 9 names/s for 1s, 10 names/s for 4s, wait 1:55
+            ** 2nd-Last : 10 names/s for 5s, wait 1:55
+            */
 
-            //20 per second, for 5 seconds, then wait 1:55, repeat
-            //2 calls per name + 1 call to reach this point
-            //1st: 9 names/s for 1s, 10 names/s for 4s, wait 1:55
-            //2nd-Last : 10 names/s for 5s, wait 1:55
-          /*   let first = true; */
-            let done = false;
-            let it = 0;
             let limit = 9;
             let index = 0;
-
-            let count = 0;
             let ratedFetches = setInterval(async () => {
                 let time = 1000;
-               /*  if (first) {
-                    limit += 9;
-                    first = !first;
-                } else {
-                    limit += 10;
-                } */
                 if (index >= challengerSummoners.length) {
                     clearInterval(ratedFetches);
                 }
@@ -253,9 +236,10 @@ const getChallengerData = async () => {
                         clearInterval(ratedFetches);
                         break;
                     }
-                    if (challengerSummoners.slice(index, limit)) { console.log(`Fetching ${index}->${limit}`) }
+                    if (challengerSummoners.slice(index, limit)) {
+                        console.log(`Fetching ${index}->${limit}`);
+                    }
                     await delay(time);
-                    console.log('fetching...');
                     rateFetch({ names: challengerSummoners.slice(index, limit) });
                     index += 10;
                     limit += 10;
