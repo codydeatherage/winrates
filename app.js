@@ -19,50 +19,6 @@ const header = { //Request header for Riot API
 let query = new matchQuery(0, 9, header, dbUrl);
 query.getChallengerData();
 
-//https://americas.api.riotgames.com/lol/match/v5/matches/by-puuid/Zkw3ioDdn1ooWvk779ib5AJJy-PELX0I7GWW68TTfRdOOh6hqRW_n20rB5sUz8_pYaULFGlcWL16xw/ids?start=0&count=20
-/* const getMatchLists = async (pid) => {
-    axios.get(`https://americas.api.riotgames.com/lol/match/v5/matches/by-puuid/${pid}/ids?start=0&count=20&api_key=${auth.key}`,
-        {
-            headers: { header }
-        }).then((response) => {
-            for (let match of response.data) {
-                if (!matchesToQuery.includes(match)) {
-                    matchesToQuery.push(match);
-                }
-            }
-        }).catch((e) => {
-            console.error(e);
-        })
-        .then(() => {
-            //console.log('MatchList set found!', matchesToQuery.length);
-            matchesToQuery = [];
-            //return matchesToQuery;
-        })
-} */
-
-/* const getPuuidByName = (name) => {
-    //console.log('Input Name: ', name);
-    const encodedName = encodeURI(name);
-    let pid = '';
-    axios.get(`https://na1.api.riotgames.com/lol/summoner/v4/summoners/by-name/${encodedName}?api_key=${auth.key}`,
-        {
-            headers: { header }
-        }).catch((e) => {
-            console.error(`!! Code ${e.response.status} --> ${e.response.statusText} !! ${name}`);
-        }).then(async (response) => {
-            if (!response) {
-                console.log('MatchId Error:', name);
-                pid = '';
-            } else {
-                const { puuid } = response.data;
-                pid = puuid;
-            }
-        })
-        .then(() => {
-            if (pid) getMatchLists(pid);
-        })
-} */
-
 const getMatchData = async (matchId) => {
     axios.get(`https://americas.api.riotgames.com/lol/match/v5/matches/${matchId}?api_key=${auth.key}`,
         {
@@ -116,15 +72,9 @@ const getMatchIdsFromDb = async () => {
     MongoClient.connect(url, { useUnifiedTopology: true }, async (err, client) => {
         console.log('Connected to mongodb...');
         const db = client.db('LoLWinrates');
-       /*  let list = await db.collection('matches').find() *//* .toArray((e, doc) =>{
-            console.log(doc);
-        }) */;
-        //  console.log(list);
         console.log('list');
 
         let arr = await db.collection('matches').find({ "name": "sentientAI" }).toArray();
-        /*  console.log(arr[0].matches); */
-        /*        client.close(); */
         console.log(arr[0].matches);
         for (let match of arr[0].matches) {
             testMatches.push(match);
@@ -133,18 +83,7 @@ const getMatchIdsFromDb = async () => {
         console.log('testMatches', testMatches);
         client.close();
         return arr[0].matches;
-
-        /*       await console.dir(aggregateResult.s); */
-    })
-
-
-        /* .then(async ()=>{
-           // for(let match of matchList){
-                const data = getMatchData(match);
-                console.log('data', await data);
-            //}
-        }) */
-        ;
+    });
 }
 
 const getAllMatchData = async () => {
@@ -179,85 +118,3 @@ const getChampData = async () => {
         })
     return await fetch;
 }
-const test = async () => {
-    /*     const names = await getChampData();
-        console.log('n', names); */
-    let allNames = [];
-    for (let ch in champs.champions) {
-
-    }
-    /* console.log(champs.champions); */
-}
-
-/* async function delay(t) {
-    return new Promise((resolve) => {
-        setTimeout(() => resolve(), t);
-    });
-} */
-
-/* const rateFetch = async (list) => {
-    for (let i = 0; i < list.names.length; i++) {
-        getPuuidByName(list.names[i].name);
-    }
-    console.log('Set Found');
-} */
-
-/* const getChallengerData = async () => {
-    axios.get(`https://na1.api.riotgames.com/lol/league/v4/challengerleagues/by-queue/RANKED_SOLO_5x5?api_key=${auth.key}`,
-        {
-            headers: { header }
-        }).then(async (response) => {
-            const { entries } = response.data;
-            let challengerSummoners = [];
-
-            for (let ent of entries) {
-                if (challengerSummoners.indexOf(ent.summonerName) <= 0) {
-                    challengerSummoners.push({ name: ent.summonerName, id: ent.summonerId });
-                }
-            }
-            
-            // The rate limit for a personal keys is by design very limited:
-            // 20 requests every 1 second
-            // 100 requests every 2 minutes 
-            //
-            // 20 per second, for 5 seconds, then wait 1:55, repeat
-            // 2 calls per name + 1 call to reach this point
-            // 1st: 9 names/s for 1s, 10 names/s for 4s, wait 1:55
-            // 2nd-Last : 10 names/s for 5s, wait 1:55
-            //
-
-            let limit = 9;
-            let index = 0;
-            let ratedFetches = setInterval(async () => {
-                let time = 1000;
-                if (index >= challengerSummoners.length) {
-                    clearInterval(ratedFetches);
-                }
-                for (let i = 0; i < 5; i++) {
-                    if (index >= challengerSummoners.length) {
-                        clearInterval(ratedFetches);
-                        break;
-                    }
-                    if (challengerSummoners.slice(index, limit)) {
-                        console.log(`Fetching ${index}->${limit}`);
-                    }
-                    await delay(time);
-                    rateFetch({ names: challengerSummoners.slice(index, limit) });
-                    index += 10;
-                    limit += 10;
-                }
-            }, 115000)
-        }).catch((e) => {
-            console.error(`!! Code ${e.response.status} --> ${e.response.statusText} !!`);;
-        })
-} */
-
-
-
-
-/* test(); */
-/* console.log(allChamps); */
-/* getAllMatchData(); */
-/* getPuuidByName('sentientAI') */
-/* getMatchIdsFromDb(); */
-/* getChallengerData(); */

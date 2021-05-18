@@ -114,19 +114,12 @@ class MatchIDQuery {
         MongoClient.connect(this.url, { useUnifiedTopology: true }, async (err, client) => {
             console.log('Connected to mongodb...');
             const db = client.db('LoLWinrates');
-            /*             let checkName = await db.collection('challenger-matches').find({ "match": "sentientAI" }).count();
-                        if (!checkName) {
-                            console.log('No document found for summoner name');
-                        }
-                        else {
-                            console.log('SentientAI document found');
-                        } */
 
-            for (let match of matchList) {
-                if (!db.collection('challenger-matches').find({ "match": { match } })) {
-                    await db.collection('matches').insertOne(
-                        { name: "sentientAI" },
-                        { $addToSet: { "matches": `${match}` } }
+            for (let match of matchList) {/* 
+                console.log(await db.collection('challenger-matches').find({"matchId": `${match}`}).count(), match); */
+                if (await db.collection('challenger-matches').find({ "matchId": `${match}`}).count() === 0) {
+                    await db.collection('challenger-matches').insertOne(
+                        {"matchId": `${match}`}
                     );
                 }
                 else{
