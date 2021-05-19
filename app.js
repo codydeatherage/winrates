@@ -19,7 +19,7 @@ const header = { //Request header for Riot API
 let query = new matchQuery(0, 9, header, dbUrl);
 query.getChallengerData();
 
-const getMatchData = async (matchId) => {
+/* const getMatchData = async (matchId) => {
     axios.get(`https://americas.api.riotgames.com/lol/match/v5/matches/${matchId}?api_key=${auth.key}`,
         {
             headers: { header }
@@ -32,7 +32,7 @@ const getMatchData = async (matchId) => {
             console.error(`!! Code ${e.response.status} --> ${e.response.statusText} !!`);
         })
         .then(() => console.log())
-}
+} */
 
 let date = new Date();
 console.log(`JOB started ${date.getMonth()}/${date.getDate()}/${date.getFullYear()}--- ${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`);
@@ -68,7 +68,7 @@ const updateMatches = () => {
 }
 
 const testMatches = [];
-const getMatchIdsFromDb = async () => {
+/* const getMatchIdsFromDb = async () => {
     MongoClient.connect(url, { useUnifiedTopology: true }, async (err, client) => {
         console.log('Connected to mongodb...');
         const db = client.db('LoLWinrates');
@@ -84,7 +84,7 @@ const getMatchIdsFromDb = async () => {
         client.close();
         return arr[0].matches;
     });
-}
+} */
 
 const getAllMatchData = async () => {
     const matchList = await getMatchIdsFromDb().then(async () => {
@@ -95,21 +95,21 @@ const getAllMatchData = async () => {
         //}
     })
     console.log('Calculating winrate...');
-    /* console.log(await matchList); */
-    /*   for(let match of matchList){
-          const data = getMatchData(match);
-          console.log('data', await data);
+    // console.log(await matchList);
+    // for(let match of matchList){
+    //       const data = getMatchData(match);
+    //       console.log('data', await data);
   
-      } */
-    /* console.log(await matchList[0]); */
+    //   } 
+    // console.log(await matchList[0]);
 }
 
 const getChampData = async () => {
-    /*  let allChamps = []; */
+    //  let allChamps = [];
     const fetch = await axios.get('http://ddragon.leagueoflegends.com/cdn/11.9.1/data/en_US/champion.json')
         .then(async (resp) => {
             let champ = await resp.data;
-            /*     allChamps.push(resp.data.data); */
+            // allChamps.push(resp.data.data); 
             let allChamps = [];
             for (let ch in champ.data) {
                 allChamps.push(ch);

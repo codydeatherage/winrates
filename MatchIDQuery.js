@@ -110,13 +110,13 @@ class MatchIDQuery {
                 }, 115000)
             })
     }
+    
     updateDB = (matchList) => {
         MongoClient.connect(this.url, { useUnifiedTopology: true }, async (err, client) => {
             console.log('Connected to mongodb...');
             const db = client.db('LoLWinrates');
 
-            for (let match of matchList) {/* 
-                console.log(await db.collection('challenger-matches').find({"matchId": `${match}`}).count(), match); */
+            for (let match of matchList) {
                 if (await db.collection('challenger-matches').find({ "matchId": `${match}`}).count() === 0) {
                     await db.collection('challenger-matches').insertOne(
                         {"matchId": `${match}`}
@@ -126,7 +126,6 @@ class MatchIDQuery {
                     console.log('Duplicate rejected,', match);
                 }
             }
-
             client.close();
         });
     }
