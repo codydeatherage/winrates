@@ -4,7 +4,7 @@ const MongoClient = require('mongodb').MongoClient;
 const cursor = require('mongodb').Cursor;
 const cron = require('node-cron');
 const champs = require('champion.json');
-const matchQuery = require('./MatchIDQuery');
+const matchIDQuery = require('./MatchIDQuery');
 /* const { endianness } = require('node:os'); */
 
 const dbUrl = 'mongodb://localhost/LoLWinrates';
@@ -16,24 +16,15 @@ const header = { //Request header for Riot API
     "Origin": "https://developer.riotgames.com",
 };
 
-let query = new matchQuery(0, 9, header, dbUrl);
-query.getChallengerData();
+let query = new matchIDQuery(0, 9, header, dbUrl);
 
-/* const getMatchData = async (matchId) => {
-    axios.get(`https://americas.api.riotgames.com/lol/match/v5/matches/${matchId}?api_key=${auth.key}`,
-        {
-            headers: { header }
-        }).then(async (response) => {
-            console.log('promise done');
-            const { participants } = await response.data.metadata;
-            console.log('participants: ', participants);
-            return participants;
-        }).catch((e) => {
-            console.error(`!! Code ${e.response.status} --> ${e.response.statusText} !!`);
-        })
-        .then(() => console.log())
-} */
+let test = async(query) =>{
+    let names  = await query.getChallengerData().then(()=>{
 
+    });
+    console.log('query:',await names);
+}
+test(query);
 let date = new Date();
 console.log(`JOB started ${date.getMonth()}/${date.getDate()}/${date.getFullYear()}--- ${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`);
 
@@ -68,23 +59,6 @@ const updateMatches = () => {
 }
 
 const testMatches = [];
-/* const getMatchIdsFromDb = async () => {
-    MongoClient.connect(url, { useUnifiedTopology: true }, async (err, client) => {
-        console.log('Connected to mongodb...');
-        const db = client.db('LoLWinrates');
-        console.log('list');
-
-        let arr = await db.collection('matches').find({ "name": "sentientAI" }).toArray();
-        console.log(arr[0].matches);
-        for (let match of arr[0].matches) {
-            testMatches.push(match);
-        }
-        console.log('first match: ', await getMatchData(arr[0].matches[0]));
-        console.log('testMatches', testMatches);
-        client.close();
-        return arr[0].matches;
-    });
-} */
 
 const getAllMatchData = async () => {
     const matchList = await getMatchIdsFromDb().then(async () => {
@@ -95,13 +69,6 @@ const getAllMatchData = async () => {
         //}
     })
     console.log('Calculating winrate...');
-    // console.log(await matchList);
-    // for(let match of matchList){
-    //       const data = getMatchData(match);
-    //       console.log('data', await data);
-  
-    //   } 
-    // console.log(await matchList[0]);
 }
 
 const getChampData = async () => {

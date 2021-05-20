@@ -8,6 +8,7 @@ class MatchIDQuery {
         this.limit = limit;
         this.header = header;
         this.url = dbUrl;
+        this.summoners = [];
         this.matchesToQuery = [];
     }
 
@@ -66,12 +67,13 @@ class MatchIDQuery {
     }
 
     getChallengerData = async () => {
-        axios.get(`https://na1.api.riotgames.com/lol/league/v4/challengerleagues/by-queue/RANKED_SOLO_5x5?api_key=${auth.key}`,
+        let summoners = [];
+        await axios.get(`https://na1.api.riotgames.com/lol/league/v4/challengerleagues/by-queue/RANKED_SOLO_5x5?api_key=${auth.key}`,
             {
                 headers: this.header
             }).then(async (response) => {
                 const { entries } = response.data;
-                let summoners = [];
+                
 
                 for (let ent of entries) {
                     if (summoners.indexOf(ent.summonerName) <= 0) {
@@ -109,8 +111,9 @@ class MatchIDQuery {
                     }
                 }, 115000)
             })
+        return summoners;
     }
-    
+
     updateDB = (matchList) => {
         MongoClient.connect(this.url, { useUnifiedTopology: true }, async (err, client) => {
             console.log('Connected to mongodb...');
