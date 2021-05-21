@@ -67,7 +67,7 @@ class MatchIDQuery {
     }
 
     getChallengerData = async () => {
-        let summoners = [];
+      /*   let summoners = []; */
         await axios.get(`https://na1.api.riotgames.com/lol/league/v4/challengerleagues/by-queue/RANKED_SOLO_5x5?api_key=${auth.key}`,
             {
                 headers: this.header
@@ -76,8 +76,8 @@ class MatchIDQuery {
                 
 
                 for (let ent of entries) {
-                    if (summoners.indexOf(ent.summonerName) <= 0) {
-                        summoners.push({ name: ent.summonerName, id: ent.summonerId });
+                    if (this.summoners.indexOf(ent.summonerName) <= 0) {
+                        this.summoners.push({ name: ent.summonerName, id: ent.summonerId });
                     }
                 }
 
@@ -91,25 +91,25 @@ class MatchIDQuery {
                 ** 2nd-Last : 10 names/s for 5s, wait 1:55
                 */
 
-                let ratedFetches = setInterval(async () => {
+               /*  let ratedFetches = setInterval(async () => {
                     let time = 1000;
-                    if (this.index >= summoners.length) {
+                    if (this.index >= this.summoners.length) {
                         clearInterval(ratedFetches);
                     }
                     for (let i = 0; i < 5; i++) {
-                        if (this.index >= summoners.length) {
+                        if (this.index >= this.summoners.length) {
                             clearInterval(ratedFetches);
                             break;
                         }
-                        if (summoners.slice(this.index, this.limit)) {
+                        if (this.summoners.slice(this.index, this.limit)) {
                             console.log(`Fetching ${this.index}->${this.limit}`);
                         }
                         await this.delay(time);
-                        this.rateFetch({ names: summoners.slice(this.index, this.limit) });
+                        this.rateFetch({ names: this.summoners.slice(this.index, this.limit) });
                         this.index += 10;
                         this.limit += 10;
                     }
-                }, 115000)
+                }, 115000) */
             })
         return summoners;
     }

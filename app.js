@@ -20,7 +20,30 @@ let query = new matchIDQuery(0, 9, header, dbUrl);
 
 let test = async(query) =>{
     let names  = await query.getChallengerData().then(()=>{
-
+        let ratedFetches = setInterval(async () => {
+            let time = 1000;
+            if (query.index >= query.summoners.length) {
+                clearInterval(ratedFetches);
+            }
+            for (let i = 0; i < 5; i++) {
+                if (query.index >= query.summoners.length) {
+                    clearInterval(ratedFetches);
+                    break;
+                }
+                if (query.summoners.slice(query.index, query.limit)) {
+                    console.log(`Fetching ${query.index}->${query.limit}`);
+                }
+                await this.delay(time);
+                let list = {names: [...query.summoners.slice(query.index, query.limit)]}
+                for (let i = 0; i < list.names.length; i++) {
+                    console.log('New Query');
+                    query.getPuuidByName(list.names[i].name);
+                }
+                query.rateFetch({ names: query.summoners.slice(query.index, query.limit) });
+                query.index += 10;
+                query.limit += 10;
+            }
+        }, 115000)
     });
     console.log('query:',await names);
 }
