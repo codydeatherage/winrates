@@ -59,12 +59,12 @@ class MatchIDQuery {
         });
     }
 
-    rateFetch = async (list) => {
+/*     rateFetch = async (list) => {
         for (let i = 0; i < list.names.length; i++) {
             this.getPuuidByName(list.names[i].name);
         }
         console.log('Set Found');
-    }
+    } */
 
     getChallengerData = async () => {
       /*   let summoners = []; */

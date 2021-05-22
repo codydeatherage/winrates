@@ -3,38 +3,45 @@ const axios = require('axios');
 const MongoClient = require('mongodb').MongoClient;
 const dbUrl = 'mongodb://localhost/LoLWinrates';
 class MatchDataDB {
-    constructor() {
-
+    constructor(dbUrl, header) {
+        this.dbUrl = dbUrl;
+        this.header = header;
+        this.matches = [];
     }
 
     getMatchData = async (matchId) => {
         axios.get(`https://americas.api.riotgames.com/lol/match/v5/matches/${matchId}?api_key=${auth.key}`,
             {
-                headers: { header }
+                headers:  this.header 
             }).then(async (response) => {
                 console.log('promise done');
-                const { participants } = await response.data.metadata;
-                console.log('participants: ', participants);
-                return participants;
+                await response.data;
+                /* const { participants } = await response.data.metadata; */
+                if(response.data.info.gameMode == "CLASSIC")
+                console.log('MatchInfo: ', response.data.info);
+                /* return participants; */
             }).catch((e) => {
                 console.error(`!! Code ${e.response.status} --> ${e.response.statusText} !!`);
             })
             .then(() => console.log())
     }
 
-    getMatchIds = async () => {
-        MongoClient.connect(url, { useUnifiedTopology: true }, async (err, client) => {
+    getMatchIds = async (collection) => {
+        MongoClient.connect(this.dbUrl, { useUnifiedTopology: true }, async (err, client) => {
             console.log('Connected to mongodb...');
             const db = client.db('LoLWinrates');
-            console.log('list');
+            // console.log('reading challenger matches from db');
 
-            let arr = await db.collection('matches').find({ "name": "sentientAI" }).toArray();
-            console.log(arr[0].matches);
-            for (let match of arr[0].matches) {
-                testMatches.push(match);
+            let arr = await db.collection(`${collection}`).find({matchId : {$exists: true}}).toArray();
+            /* console.log(arr[0]); */
+            for (let match of arr) {
+                if(this.matches.indexOf(match) < 0){
+                    this.matches.push(match.matchId);
+                }
             }
-            console.log('first match: ', await getMatchData(arr[0].matches[0]));
-            console.log('testMatches', testMatches);
+
+            await this.getMatchData(this.matches[0]);
+           /*  console.log('testMatches', testMatches); */
             client.close();
             /*  return arr[0].matches; */
         });
@@ -42,3 +49,5 @@ class MatchDataDB {
 
 
 }
+
+module.exports = MatchDataDB;

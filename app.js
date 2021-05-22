@@ -4,6 +4,7 @@ const MongoClient = require('mongodb').MongoClient;
 const cursor = require('mongodb').Cursor;
 const cron = require('node-cron');
 const champs = require('champion.json');
+const MatchDataDB = require('./MatchDataDB')
 const matchIDQuery = require('./MatchIDQuery');
 /* const { endianness } = require('node:os'); */
 
@@ -17,8 +18,10 @@ const header = { //Request header for Riot API
 };
 
 let query = new matchIDQuery(0, 9, header, dbUrl);
+let matchDb = new MatchDataDB(dbUrl, header);
+matchDb.getMatchIds('challenger-matches');
 
-let test = async(query) =>{
+const feedChallengerMatchIdToDb = async(query) =>{
     let names  = await query.getChallengerData().then(()=>{
         let ratedFetches = setInterval(async () => {
             let time = 1000;
@@ -33,13 +36,13 @@ let test = async(query) =>{
                 if (query.summoners.slice(query.index, query.limit)) {
                     console.log(`Fetching ${query.index}->${query.limit}`);
                 }
-                await this.delay(time);
+                await query.delay(time);
                 let list = {names: [...query.summoners.slice(query.index, query.limit)]}
                 for (let i = 0; i < list.names.length; i++) {
                     console.log('New Query');
                     query.getPuuidByName(list.names[i].name);
                 }
-                query.rateFetch({ names: query.summoners.slice(query.index, query.limit) });
+                /* query.rateFetch({ names: query.summoners.slice(query.index, query.limit) }); */
                 query.index += 10;
                 query.limit += 10;
             }
@@ -47,7 +50,8 @@ let test = async(query) =>{
     });
     console.log('query:',await names);
 }
-test(query);
+
+/* getChallengerNames(query); */
 let date = new Date();
 console.log(`JOB started ${date.getMonth()}/${date.getDate()}/${date.getFullYear()}--- ${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`);
 
