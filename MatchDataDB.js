@@ -45,6 +45,25 @@ class MatchDataDB {
             client.close();
             /*  return arr[0].matches; */
         });
+
+        updateDB = (matchList) => {
+            MongoClient.connect(this.url, { useUnifiedTopology: true }, async (err, client) => {
+                console.log('Connected to mongodb...');
+                const db = client.db('LoLWinrates');
+    
+           /*      for (let match of matchList) {
+                    if (await db.collection('challenger-matches').find({ "matchId": `${match}`}).count() === 0) {
+                        await db.collection('challenger-matches').insertOne(
+                            {"matchId": `${match}`}
+                        );
+                    }
+                    else{
+                        console.log('Duplicate rejected,', match);
+                    }
+                } */
+                client.close();
+            });
+        }
     }
 
 
