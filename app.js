@@ -6,7 +6,6 @@ const cron = require('node-cron');
 const champs = require('champion.json');
 const MatchDataDB = require('./MatchDataDB')
 const matchIDQuery = require('./MatchIDQuery');
-/* const { endianness } = require('node:os'); */
 
 const dbUrl = 'mongodb://localhost/LoLWinrates';
 let matchesToQuery = [];
@@ -16,13 +15,42 @@ const header = { //Request header for Riot API
     "Accept-Charset": "application/x-www-form-urlencoded; charset=UTF-8",
     "Origin": "https://developer.riotgames.com",
 };
+/* let query = new matchIDQuery(0, 9, header, dbUrl);
+let matchDb = new MatchDataDB(dbUrl, header); */
+const test = async () => {
+    let matchDb = new MatchDataDB(dbUrl, header);
+    let query = new matchIDQuery(0, 9, header, dbUrl);
+    let matchList = await matchDb.getMatchIds('challenger-matches').then(() => {
+        query.matchesToQuery = matchDb.matches;
+        let ratedFetches = setInterval(async () => {
+            let time = 1000;
+            if (query.index >= query.matchesToQuery.length) {
+                clearInterval(ratedFetches);
+            }
+            for (let i = 0; i < 5; i++) {
+                if (query.index >= query.matchesToQuery.length) {
+                    clearInterval(ratedFetches);
+                    break;
+                }
+                if (query.matchesToQuery.slice(query.index, query.limit)) {
+                    console.log(`Fetching ${query.index}->${query.limit}`);
+                }
+                await query.delay(time);
+                let list = { matches: [...query.matchesToQuery.slice(query.index, query.limit)] }
+                for (let i = 0; i < list.matches.length; i++) {
+                    console.log('New Query');
+                    matchDb.getMatchData(list.matches[i]);
+                }
+                query.index += 10;
+                query.limit += 10;
+            }
+        }, 115000)
+    });
+}
 
-let query = new matchIDQuery(0, 9, header, dbUrl);
-let matchDb = new MatchDataDB(dbUrl, header);
-matchDb.getMatchIds('challenger-matches');
-
-const feedChallengerMatchIdToDb = async(query) =>{
-    let names  = await query.getChallengerData().then(()=>{
+test();
+const feedChallengerMatchIdToDb = async (query) => {
+    let names = await query.getChallengerData().then(() => {
         let ratedFetches = setInterval(async () => {
             let time = 1000;
             if (query.index >= query.summoners.length) {
@@ -37,21 +65,20 @@ const feedChallengerMatchIdToDb = async(query) =>{
                     console.log(`Fetching ${query.index}->${query.limit}`);
                 }
                 await query.delay(time);
-                let list = {names: [...query.summoners.slice(query.index, query.limit)]}
+                let list = { names: [...query.summoners.slice(query.index, query.limit)] }
                 for (let i = 0; i < list.names.length; i++) {
                     console.log('New Query');
                     query.getPuuidByName(list.names[i].name);
                 }
-                /* query.rateFetch({ names: query.summoners.slice(query.index, query.limit) }); */
                 query.index += 10;
                 query.limit += 10;
             }
         }, 115000)
     });
-    console.log('query:',await names);
+    console.log('query:', await names);
 }
 
-/* getChallengerNames(query); */
+
 let date = new Date();
 console.log(`JOB started ${date.getMonth()}/${date.getDate()}/${date.getFullYear()}--- ${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`);
 
@@ -73,14 +100,12 @@ const updateMatches = () => {
         else {
             console.log('SentientAI document found');
         }
-
         for (let match of matchesToQuery) {
             await db.collection('matches').updateOne(
                 { name: "sentientAI" },
                 { $addToSet: { "matches": `${match}` } }
             );
         }
-
         client.close();
     });
 }
@@ -89,21 +114,17 @@ const testMatches = [];
 
 const getAllMatchData = async () => {
     const matchList = await getMatchIdsFromDb().then(async () => {
-        // for(let match of matchList){
         let match = testMatches[0];
         const data = getMatchData(match);
         console.log('data', await data);
-        //}
     })
     console.log('Calculating winrate...');
 }
 
 const getChampData = async () => {
-    //  let allChamps = [];
     const fetch = await axios.get('http://ddragon.leagueoflegends.com/cdn/11.9.1/data/en_US/champion.json')
         .then(async (resp) => {
             let champ = await resp.data;
-            // allChamps.push(resp.data.data); 
             let allChamps = [];
             for (let ch in champ.data) {
                 allChamps.push(ch);

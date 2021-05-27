@@ -2,6 +2,7 @@ const auth = require('./auth.json');
 const axios = require('axios');
 const MongoClient = require('mongodb').MongoClient;
 const dbUrl = 'mongodb://localhost/LoLWinrates';
+
 class MatchDataDB {
     constructor(dbUrl, header) {
         this.dbUrl = dbUrl;
@@ -12,14 +13,13 @@ class MatchDataDB {
     getMatchData = async (matchId) => {
         axios.get(`https://americas.api.riotgames.com/lol/match/v5/matches/${matchId}?api_key=${auth.key}`,
             {
-                headers:  this.header 
+                headers: this.header
             }).then(async (response) => {
-                console.log('promise done');
                 await response.data;
-                /* const { participants } = await response.data.metadata; */
-                if(response.data.info.gameMode == "CLASSIC")
-                console.log('MatchInfo: ', response.data.info);
-                /* return participants; */
+                if (response.data.info.gameMode == "CLASSIC") {
+                    /*  console.log('MatchInfo: ', response.data.info); */
+                    console.log('Match found');
+                }
             }).catch((e) => {
                 console.error(`!! Code ${e.response.status} --> ${e.response.statusText} !!`);
             })
@@ -30,43 +30,29 @@ class MatchDataDB {
         MongoClient.connect(this.dbUrl, { useUnifiedTopology: true }, async (err, client) => {
             console.log('Connected to mongodb...');
             const db = client.db('LoLWinrates');
-            // console.log('reading challenger matches from db');
-
-            let arr = await db.collection(`${collection}`).find({matchId : {$exists: true}}).toArray();
-            /* console.log(arr[0]); */
+            let arr = await db.collection(`${collection}`).find({ matchId: { $exists: true } }).toArray();
             for (let match of arr) {
-                if(this.matches.indexOf(match) < 0){
+                if (this.matches.indexOf(match) < 0) {
                     this.matches.push(match.matchId);
                 }
             }
-
-            await this.getMatchData(this.matches[0]);
-           /*  console.log('testMatches', testMatches); */
             client.close();
-            /*  return arr[0].matches; */
+            return this.matches;
         });
-
-        updateDB = (matchList) => {
-            MongoClient.connect(this.url, { useUnifiedTopology: true }, async (err, client) => {
-                console.log('Connected to mongodb...');
-                const db = client.db('LoLWinrates');
-    
-           /*      for (let match of matchList) {
-                    if (await db.collection('challenger-matches').find({ "matchId": `${match}`}).count() === 0) {
-                        await db.collection('challenger-matches').insertOne(
-                            {"matchId": `${match}`}
-                        );
-                    }
-                    else{
-                        console.log('Duplicate rejected,', match);
-                    }
-                } */
-                client.close();
-            });
-        }
     }
 
-
+    updateDB = async () => {
+        MongoClient.connect(this.dbUrl, { useUnifiedTopology: true }, async (err, client) => {
+            console.log('Connected to mongodb...');
+            const db = client.db('LoLWinrates');
+            let count = 0;
+            await db.collection('challenger-matches').find().forEach(() => {
+                count++;
+            });
+            console.log(count);
+            client.close();
+        });
+    }
 }
 
 module.exports = MatchDataDB;
