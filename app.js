@@ -37,9 +37,9 @@ const test = async () => {
                 }
                 await query.delay(time);
                 let list = { matches: [...query.matchesToQuery.slice(query.index, query.limit)] }
+                console.log('New Query');
                 for (let i = 0; i < list.matches.length; i++) {
-                    console.log('New Query');
-                    matchDb.getMatchData(list.matches[i]);
+                    await matchDb.getMatchData(list.matches[i]);
                 }
                 query.index += 10;
                 query.limit += 10;
@@ -48,6 +48,29 @@ const test = async () => {
     });
 }
 
+
+const test2 = async () => {
+    let matchDb = new MatchDataDB(dbUrl, header);
+    let query = new matchIDQuery(0, 9, header, dbUrl);
+    await matchDb.getMatchIds('challenger-matches').then(async () => {
+        
+        await query.delay(500);
+        /* console.log(matchDb.matches); */
+       /*  await matchDb.getMatchData(await matchDb.matches[0]); */
+    }).then(async ()=>{
+        console.log(matchDb.matches.length);
+        for(let i = 0; i < 10; i++){
+            await matchDb.getMatchData(matchDb.matches[i]);
+            await query.delay(250);
+            console.log(matchDb.matches[i]);
+            console.log(matchDb.matchData.length);
+        }   
+    }).then(async ()=>{
+        console.log('fsdfsd', matchDb.matchData.length);
+        await matchDb.updateDB(matchDb.matchData);
+    })   
+}
+/* test2(); */
 test();
 const feedChallengerMatchIdToDb = async (query) => {
     let names = await query.getChallengerData().then(() => {

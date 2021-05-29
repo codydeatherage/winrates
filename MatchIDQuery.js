@@ -35,7 +35,7 @@ class MatchIDQuery {
     }
 
     getMatchLists = async (pid) => {
-        axios.get(`https://americas.api.riotgames.com/lol/match/v5/matches/by-puuid/${pid}/ids?start=0&count=20&api_key=${auth.key}`,
+        axios.get(`https://americas.api.riotgames.com/lol/match/v5/matches/by-puuid/${pid}/ids?start=0&count=100&api_key=${auth.key}`,
             {
                 headers: this.header
             }).then((response) => {
