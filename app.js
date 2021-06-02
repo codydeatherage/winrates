@@ -20,7 +20,7 @@ let matchDb = new MatchDataDB(dbUrl, header); */
 const test = async () => {
     let matchDb = new MatchDataDB(dbUrl, header);
     let query = new matchIDQuery(0, 9, header, dbUrl);
-    let matchList = await matchDb.getMatchIds('challenger-matches').then(() => {
+    let matchList = await matchDb.getMatchIds('challenger-matches-v11.11').then(() => {
         query.matchesToQuery = matchDb.matches;
         let ratedFetches = setInterval(async () => {
             let time = 1000;
@@ -52,7 +52,7 @@ const test = async () => {
 const test2 = async () => {
     let matchDb = new MatchDataDB(dbUrl, header);
     let query = new matchIDQuery(0, 9, header, dbUrl);
-    await matchDb.getMatchIds('challenger-matches').then(async () => {
+    await matchDb.getMatchIds('challenger-matches-v11.11').then(async () => {
         
         await query.delay(500);
         /* console.log(matchDb.matches); */
@@ -71,7 +71,7 @@ const test2 = async () => {
     })   
 }
 /* test2(); */
-test();
+/* test(); */
 const feedChallengerMatchIdToDb = async (query) => {
     let names = await query.getChallengerData().then(() => {
         let ratedFetches = setInterval(async () => {
@@ -101,6 +101,7 @@ const feedChallengerMatchIdToDb = async (query) => {
     console.log('query:', await names);
 }
 
+feedChallengerMatchIdToDb();
 
 let date = new Date();
 console.log(`JOB started ${date.getMonth()}/${date.getDate()}/${date.getFullYear()}--- ${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`);

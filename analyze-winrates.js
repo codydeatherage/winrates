@@ -42,10 +42,17 @@ const test = async () => {
 }
 */
 
-MongoClient.connect(dbUrl, { useUnifiedTopology: true }, async (err, client) => {
+/* MongoClient.connect(dbUrl, { useUnifiedTopology: true }, async (err, client) => {
     const db = client.db('LoLWinrates');
-    /* let arr = await db.collection('champion-data'); */
+    // let arr = await db.collection('champion-data');
     for (let ch in champs.champions) {
+        let matchups = [];
+        for(let cham in champs.champions){
+            //only need every other champion in matchups array
+            if(cham !== ch){
+                matchups.push({name: cham, gamesPlayedAgainst: 0, gamesWonAgainst:0});
+            }
+        }
         await db.collection('champion-data').insertOne(
             {
                 name: ch,
@@ -57,14 +64,13 @@ MongoClient.connect(dbUrl, { useUnifiedTopology: true }, async (err, client) => 
                 gamesWonOnBlue: 0,
                 gamesWon: 0,
                 gamesLost: 0,
-                matchups: []
+                matchups: matchups
             }
         )
     }
     console.log('done');
     client.close();
-
-})
+}) */
 
 
 

@@ -40,7 +40,8 @@ class MatchIDQuery {
                 headers: this.header
             }).then((response) => {
                 for (let match of response.data) {
-                    if (!this.matchesToQuery.includes(match)) {
+                    let version = response.data.info.gameVersion.slice(0,5);
+                    if (!this.matchesToQuery.includes(match) && response.data.info.queueId === 420  && version === "11.11") {
                         this.matchesToQuery.push(match);
                     }
                 }
@@ -120,8 +121,8 @@ class MatchIDQuery {
             const db = client.db('LoLWinrates');
 
             for (let match of matchList) {
-                if (await db.collection('challenger-matches').find({ "matchId": `${match}`}).count() === 0) {
-                    await db.collection('challenger-matches').insertOne(
+                if (await db.collection('challenger-matches-v11.11').find({ "matchId": `${match}`}).count() === 0) {
+                    await db.collection('challenger-matches-v11.11').insertOne(
                         {"matchId": `${match}`}
                     );
                 }
