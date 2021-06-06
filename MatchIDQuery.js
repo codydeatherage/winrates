@@ -38,10 +38,11 @@ class MatchIDQuery {
         axios.get(`https://americas.api.riotgames.com/lol/match/v5/matches/by-puuid/${pid}/ids?start=0&count=100&api_key=${auth.key}`,
             {
                 headers: this.header
-            }).then((response) => {
+            }).then(async (response) => {
+                await response.data;
                 for (let match of response.data) {
-                    let version = response.data.info.gameVersion.slice(0,5);
-                    if (!this.matchesToQuery.includes(match) && response.data.info.queueId === 420  && version === "11.11") {
+                   // this.delay(100);
+                    if (!this.matchesToQuery.includes(match)) {
                         this.matchesToQuery.push(match);
                     }
                 }
@@ -60,22 +61,12 @@ class MatchIDQuery {
         });
     }
 
-/*     rateFetch = async (list) => {
-        for (let i = 0; i < list.names.length; i++) {
-            this.getPuuidByName(list.names[i].name);
-        }
-        console.log('Set Found');
-    } */
-
     getChallengerData = async () => {
-      /*   let summoners = []; */
         await axios.get(`https://na1.api.riotgames.com/lol/league/v4/challengerleagues/by-queue/RANKED_SOLO_5x5?api_key=${auth.key}`,
             {
                 headers: this.header
             }).then(async (response) => {
                 const { entries } = response.data;
-                
-
                 for (let ent of entries) {
                     if (this.summoners.indexOf(ent.summonerName) <= 0) {
                         this.summoners.push({ name: ent.summonerName, id: ent.summonerId });
@@ -91,33 +82,12 @@ class MatchIDQuery {
                 ** 1st: 9 names/s for 1s, 10 names/s for 4s, wait 1:55
                 ** 2nd-Last : 10 names/s for 5s, wait 1:55
                 */
-
-               /*  let ratedFetches = setInterval(async () => {
-                    let time = 1000;
-                    if (this.index >= this.summoners.length) {
-                        clearInterval(ratedFetches);
-                    }
-                    for (let i = 0; i < 5; i++) {
-                        if (this.index >= this.summoners.length) {
-                            clearInterval(ratedFetches);
-                            break;
-                        }
-                        if (this.summoners.slice(this.index, this.limit)) {
-                            console.log(`Fetching ${this.index}->${this.limit}`);
-                        }
-                        await this.delay(time);
-                        this.rateFetch({ names: this.summoners.slice(this.index, this.limit) });
-                        this.index += 10;
-                        this.limit += 10;
-                    }
-                }, 115000) */
             })
-        return summoners;
     }
 
     updateDB = (matchList) => {
         MongoClient.connect(this.url, { useUnifiedTopology: true }, async (err, client) => {
-            console.log('Connected to mongodb...');
+            //console.log('Connected to mongodb...');
             const db = client.db('LoLWinrates');
 
             for (let match of matchList) {
@@ -126,9 +96,9 @@ class MatchIDQuery {
                         {"matchId": `${match}`}
                     );
                 }
-                else{
+               /*  else{
                     console.log('Duplicate rejected,', match);
-                }
+                } */
             }
             client.close();
         });

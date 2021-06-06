@@ -17,19 +17,20 @@ class MatchDataDB {
                 headers: this.header
             }).then(async (response) => {
                 await response.data;
-                console.log(response.data.info.gameMode);
-                if (response.data.info.gameMode == "CLASSIC") {
-                  /*   console.log('MatchInfo: ', response.data.info); */
+                const {gameId, gameVersion, queueId} = response.data.info;
+                let version = gameVersion.slice(0,5);
+                //420 is queueId for 5v5 Ranked SoloQ :)
+                if (version === "11.11" && queueId === 420) {
                     if(this.matchData.indexOf(response.data.info) < 0){
                         this.matchData.push(response.data.info);
                     }
-                    /* console.log('Match found'); */
                 }
             }).catch((e) => {
                 console.error(`!! Code ${e.response.status} --> ${e.response.statusText} !!`);
             })
             .then(async () => {
                 await this.updateDB(this.matchData);
+                this.matchData = [];
                 
             }).catch((e) => {
                 console.error(`!! Code ${e.response.status} --> ${e.response.statusText} !!`);
@@ -47,30 +48,19 @@ class MatchDataDB {
             }
             console.log('done');
             client.close();
-           /*  return this.matches; */
         });
     }
 
     updateDB = async (data) => {
         MongoClient.connect(this.dbUrl, { useUnifiedTopology: true }, async (err, client) => {
             const db = client.db('LoLWinrates');
-            /* console.log(this.matchData.length); */
             for(let match of data){
-                if (await db.collection('challenger-match-data').find({ "gameId": match.gameId}).count() === 0) {
-                    
-                    /* console.log('inserting', match.gameId); */
-                      await db.collection('challenger-match-data').insertOne(
+                if (await db.collection('challenger-match-data-v11.11').find({ "gameId": match.gameId}).count() === 0) {
+                      await db.collection('challenger-match-data-v11.11').insertOne(
                         {...match}
                     );
                 }
-                else{/* console.log('Duplicate Rejected: ', match.gameId) */}
-              /*   console.log('inserting...', match.gameId);
-                await db.collection('challenger-match-data').insertOne(
-                    {...match},
-                    {upsert: true},
-                ); */
             }
-            /* console.log(count); */
             client.close();
         });
     }

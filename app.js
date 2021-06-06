@@ -3,7 +3,7 @@ const axios = require('axios');
 const MongoClient = require('mongodb').MongoClient;
 const cursor = require('mongodb').Cursor;
 const cron = require('node-cron');
-const champs = require('champion.json');
+const champs = require('./champion.json');
 const MatchDataDB = require('./MatchDataDB')
 const matchIDQuery = require('./MatchIDQuery');
 
@@ -21,22 +21,21 @@ const test = async () => {
     let matchDb = new MatchDataDB(dbUrl, header);
     let query = new matchIDQuery(0, 9, header, dbUrl);
     let matchList = await matchDb.getMatchIds('challenger-matches-v11.11').then(() => {
-        query.matchesToQuery = matchDb.matches;
         let ratedFetches = setInterval(async () => {
-            let time = 1000;
-            if (query.index >= query.matchesToQuery.length) {
+            let time = 1500;
+            if (query.index >= matchDb.matches.length) {
                 clearInterval(ratedFetches);
             }
             for (let i = 0; i < 5; i++) {
-                if (query.index >= query.matchesToQuery.length) {
+                if (query.index >= matchDb.matches.length) {
                     clearInterval(ratedFetches);
                     break;
                 }
-                if (query.matchesToQuery.slice(query.index, query.limit)) {
+                if (matchDb.matches.slice(query.index, query.limit)) {
                     console.log(`Fetching ${query.index}->${query.limit}`);
                 }
                 await query.delay(time);
-                let list = { matches: [...query.matchesToQuery.slice(query.index, query.limit)] }
+                let list = { matches: [...matchDb.matches.slice(query.index, query.limit)] }
                 console.log('New Query');
                 for (let i = 0; i < list.matches.length; i++) {
                     await matchDb.getMatchData(list.matches[i]);
@@ -44,7 +43,7 @@ const test = async () => {
                 query.index += 10;
                 query.limit += 10;
             }
-        }, 115000)
+        },75000)
     });
 }
 
@@ -55,8 +54,6 @@ const test2 = async () => {
     await matchDb.getMatchIds('challenger-matches-v11.11').then(async () => {
         
         await query.delay(500);
-        /* console.log(matchDb.matches); */
-       /*  await matchDb.getMatchData(await matchDb.matches[0]); */
     }).then(async ()=>{
         console.log(matchDb.matches.length);
         for(let i = 0; i < 10; i++){
@@ -71,7 +68,7 @@ const test2 = async () => {
     })   
 }
 /* test2(); */
-/* test(); */
+test();
 const feedChallengerMatchIdToDb = async (query) => {
     let names = await query.getChallengerData().then(() => {
         let ratedFetches = setInterval(async () => {
@@ -90,18 +87,19 @@ const feedChallengerMatchIdToDb = async (query) => {
                 await query.delay(time);
                 let list = { names: [...query.summoners.slice(query.index, query.limit)] }
                 for (let i = 0; i < list.names.length; i++) {
-                    console.log('New Query');
+                    //console.log('New Query');
                     query.getPuuidByName(list.names[i].name);
                 }
                 query.index += 10;
                 query.limit += 10;
             }
-        }, 115000)
+        }, 65000)
     });
     console.log('query:', await names);
 }
-
-feedChallengerMatchIdToDb();
+let query = new matchIDQuery(0, 9, header, dbUrl);
+/* feedChallengerMatchIdToDb(query); */
+/* query.getChallengerData(); */
 
 let date = new Date();
 console.log(`JOB started ${date.getMonth()}/${date.getDate()}/${date.getFullYear()}--- ${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`);
