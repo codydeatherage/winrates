@@ -36,12 +36,17 @@ const test = async () => {
                 }
                 await query.delay(time);
                 let list = { matches: [...matchDb.matches.slice(query.index, query.limit)] }
-                console.log('New Query');
+                console.log(`New Query: ${list.matches.length}`);
                 for (let i = 0; i < list.matches.length; i++) {
                     await matchDb.getMatchData(list.matches[i]);
                 }
-                query.index += 10;
-                query.limit += 10;
+                await query.delay(time/2);
+                console.log('matchData length:', matchDb.matchData.length);
+                await matchDb.updateDB(matchDb.matchData).then(()=>{
+                    matchDb.matchData = [];
+                    query.index += 10;
+                    query.limit += 10;
+                });
             }
         },75000)
     });
@@ -97,8 +102,8 @@ const feedChallengerMatchIdToDb = async (query) => {
     });
     console.log('query:', await names);
 }
-let query = new matchIDQuery(0, 9, header, dbUrl);
-/* feedChallengerMatchIdToDb(query); */
+/* let query = new matchIDQuery(0, 9, header, dbUrl);
+feedChallengerMatchIdToDb(query); */
 /* query.getChallengerData(); */
 
 let date = new Date();

@@ -41,7 +41,7 @@ class MatchIDQuery {
             }).then(async (response) => {
                 await response.data;
                 for (let match of response.data) {
-                   // this.delay(100);
+                    // this.delay(100);
                     if (!this.matchesToQuery.includes(match)) {
                         this.matchesToQuery.push(match);
                     }
@@ -49,7 +49,7 @@ class MatchIDQuery {
             }).catch((e) => {
                 console.error(e);
             })
-            .then(async() => {
+            .then(async () => {
                 await this.updateDB(this.matchesToQuery);
                 this.matchesToQuery = [];
             })
@@ -89,17 +89,25 @@ class MatchIDQuery {
         MongoClient.connect(this.url, { useUnifiedTopology: true }, async (err, client) => {
             //console.log('Connected to mongodb...');
             const db = client.db('LoLWinrates');
-
+            let dupes = 0;
+            let added = 0;
             for (let match of matchList) {
-                if (await db.collection('challenger-matches-v11.11').find({ "matchId": `${match}`}).count() === 0) {
+                let date = new Date();
+                let dateAdded =date /* `${date.getMonth()}/${date.getDate()}/${date.getMonth} ${date.getHours()}: ${date.getMinutes()}:${date.getSeconds()}` */;
+                if (await db.collection('challenger-matches-v11.11').find({ matchId: `${match}` }).count() === 0) {
                     await db.collection('challenger-matches-v11.11').insertOne(
-                        {"matchId": `${match}`}
+                        {
+                            matchId: `${match}`,
+                            added: dateAdded
+                        }
                     );
+                    added++;
                 }
-               /*  else{
-                    console.log('Duplicate rejected,', match);
-                } */
+                else {
+                    dupes++;
+                }
             }
+            console.log(`${matchList.length} matches - ${dupes} duplicates, ${added} new matches`);
             client.close();
         });
     }

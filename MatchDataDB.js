@@ -26,14 +26,8 @@ class MatchDataDB {
                     }
                 }
             }).catch((e) => {
-                console.error(`!! Code ${e.response.status} --> ${e.response.statusText} !!`);
-            })
-            .then(async () => {
-                await this.updateDB(this.matchData);
-                this.matchData = [];
-                
-            }).catch((e) => {
-                console.error(`!! Code ${e.response.status} --> ${e.response.statusText} !!`);
+                //some
+                console.error(`!! Code ${e.response.status} --> ${matchId} !!`);
             })
     }
 
@@ -46,7 +40,7 @@ class MatchDataDB {
                     this.matches.push(match.matchId);
                 }
             }
-            console.log('done');
+            console.log(`${this.matches.length} matchIds found`);
             client.close();
         });
     }
@@ -54,13 +48,21 @@ class MatchDataDB {
     updateDB = async (data) => {
         MongoClient.connect(this.dbUrl, { useUnifiedTopology: true }, async (err, client) => {
             const db = client.db('LoLWinrates');
+            let dupes = 0;
+            let newMatches = 0;
             for(let match of data){
+
                 if (await db.collection('challenger-match-data-v11.11').find({ "gameId": match.gameId}).count() === 0) {
                       await db.collection('challenger-match-data-v11.11').insertOne(
                         {...match}
                     );
+                    newMatches++;
+                }
+                else{
+                    dupes++;
                 }
             }
+            console.log(`${data.length} matches - ${dupes} duplicates, ${newMatches} new matches`);
             client.close();
         });
     }
