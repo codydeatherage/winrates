@@ -6,7 +6,13 @@ const cron = require('node-cron');
 const champs = require('./champion.json');
 const MatchDataDB = require('./MatchDataDB')
 const matchIDQuery = require('./MatchIDQuery');
+const express = require('express');
+const PORT = process.env.PORT || 3001;
+const app = express();
 
+app.listen(PORT, () =>{
+    console.log(`Server listening on ${PORT}`);
+})
 const dbUrl = 'mongodb://localhost/LoLWinrates';
 let matchesToQuery = [];
 const header = { //Request header for Riot API
