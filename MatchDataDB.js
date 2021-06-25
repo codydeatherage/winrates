@@ -1,7 +1,3 @@
-const auth = require('./auth.json');
-const axios = require('axios');
-const MongoClient = require('mongodb').MongoClient;
-const dbUrl = 'mongodb://localhost/LoLWinrates';
 
 class MatchDataDB {
     constructor(dbUrl, header) {

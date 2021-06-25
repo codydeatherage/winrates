@@ -15,12 +15,7 @@ app.listen(PORT, () =>{
 })
 const dbUrl = 'mongodb://localhost/LoLWinrates';
 let matchesToQuery = [];
-const header = { //Request header for Riot API
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.85 Safari/537.36",
-    "Accept-Language": "en-US,en;q=0.9",
-    "Accept-Charset": "application/x-www-form-urlencoded; charset=UTF-8",
-    "Origin": "https://developer.riotgames.com",
-};
+
 /* let query = new matchIDQuery(0, 9, header, dbUrl);
 let matchDb = new MatchDataDB(dbUrl, header); */
 const test = async () => {
